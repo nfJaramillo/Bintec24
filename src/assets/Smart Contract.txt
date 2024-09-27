@@ -1,0 +1,148 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/access/AccessControl.sol";
+
+contract LemonMarket is AccessControl {
+
+    // Definir los roles de COMPRADOR y VENDEDOR
+    bytes32 public constant BUYER_ROLE = keccak256("BUYER_ROLE");
+    bytes32 public constant SELLER_ROLE = keccak256("SELLER_ROLE");
+
+    // Estructura de un carro
+    struct Car {
+        uint id;
+        address owner;
+        uint quality; // 1 = baja, 2 = media, 3 = alta
+        uint price;
+        string title; // Título del carro
+        string description; // Descripción del carro
+        bool isAvailable;
+    }
+
+    // Mapeo de los carros
+    mapping(uint => Car) public cars;
+
+    // Mapeo de los compradores y sus fondos (tokens)
+    mapping(address => uint) public buyerTokens;
+
+    // Contador para los carros
+    uint public carCounter;
+
+    // Evento cuando un carro es vendido
+    event CarSold(uint carId, address buyer, address seller, uint price, uint quality);
+
+    // Constructor que asigna el rol de admin al deployer
+    constructor() {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender); // Admin inicial
+    }
+
+    // Función para otorgar el rol de admin a otro usuario
+    function addAdmin(address newAdmin) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        grantRole(DEFAULT_ADMIN_ROLE, newAdmin); // Asignar rol de admin
+    }
+
+    // Función para otorgar el rol de comprador
+    function addBuyer(address buyer, uint initialTokens) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        grantRole(BUYER_ROLE, buyer);
+        buyerTokens[buyer] = initialTokens; // El admin asigna tokens iniciales
+    }
+
+    // Función para otorgar el rol de vendedor
+    function addSeller(address seller) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        grantRole(SELLER_ROLE, seller);
+    }
+
+    // Función para que los vendedores registren carros a la venta
+    function registerCar(uint _quality, uint _price, string memory _title, string memory _description) public onlyRole(SELLER_ROLE) {
+        require(_quality >= 1 && _quality <= 3, "Calidad invalida");
+        require(_price > 0, "El precio debe ser mayor a 0");
+
+        carCounter++;
+        cars[carCounter] = Car(carCounter, msg.sender, _quality, _price, _title, _description, true);
+    }
+
+    // Función para que los compradores compren carros
+    function buyCar(uint _carId) public onlyRole(BUYER_ROLE) {
+        Car storage car = cars[_carId];
+
+        require(car.isAvailable, "Este carro no esta disponible");
+        require(buyerTokens[msg.sender] >= car.price, "Fondos insuficientes para la compra");
+
+        // Transferir los tokens al vendedor
+        buyerTokens[msg.sender] -= car.price;
+        buyerTokens[car.owner] += car.price; // Se acumulan los tokens para el vendedor
+
+        // Emitir el evento de la venta
+        emit CarSold(_carId, msg.sender, car.owner, car.price, car.quality);
+
+        // Cambiar el dueño del carro
+        car.owner = msg.sender;
+        car.isAvailable = false;
+    }
+
+    // Función para que el admin asigne tokens adicionales a los compradores
+    function assignTokensToBuyer(address buyer, uint amount) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(hasRole(BUYER_ROLE, buyer), "No tiene el rol de comprador");
+        buyerTokens[buyer] += amount;
+    }
+
+    // Función para obtener detalles de todos los carros, excluyendo calidad
+    function getAllCars() public view returns (uint[] memory, address[] memory, uint[] memory, bool[] memory, string[] memory, string[] memory) {
+        uint[] memory ids = new uint[](carCounter);
+        address[] memory owners = new address[](carCounter);
+        uint[] memory prices = new uint[](carCounter);
+        bool[] memory availabilities = new bool[](carCounter);
+        string[] memory titles = new string[](carCounter);
+        string[] memory descriptions = new string[](carCounter);
+
+        for (uint i = 1; i <= carCounter; i++) {
+            Car storage car = cars[i];
+            ids[i - 1] = car.id;
+            owners[i - 1] = car.owner;
+            prices[i - 1] = car.price;
+            availabilities[i - 1] = car.isAvailable;
+            titles[i - 1] = car.title;
+            descriptions[i - 1] = car.description;
+        }
+
+        return (ids, owners, prices, availabilities, titles, descriptions);
+    }
+
+    // Función para ver los tokens de un comprador
+    function getBuyerTokens(address buyer) public view returns (uint) {
+        return buyerTokens[buyer];
+    }
+
+    // Nueva función para obtener el rol de una dirección
+    function getRole(address user) public view returns (string memory) {
+        if (hasRole(BUYER_ROLE, user)) {
+            return "Buyer";
+        } else if (hasRole(SELLER_ROLE, user)) {
+            return "Seller";
+        } else {
+            return "None";
+        }
+    }
+
+    // Nueva función para obtener los carros de un dueño específico
+    function getCarsByOwner(address owner) public view returns (uint[] memory) {
+        uint[] memory result = new uint[](carCounter);
+        uint counter = 0;
+
+        for (uint i = 1; i <= carCounter; i++) {
+            if (cars[i].owner == owner) {
+                result[counter] = cars[i].id;
+                counter++;
+            }
+        }
+
+        // Ajustar el tamaño del array para que no tenga espacios vacíos
+        uint[] memory trimmedResult = new uint[](counter);
+        for (uint i = 0; i < counter; i++) {
+            trimmedResult[i] = result[i];
+        }
+
+        return trimmedResult;
+    }
+}
