@@ -10,8 +10,9 @@ import Canvas from './pages/canvas';
 import Certificado from './pages/certificado'
 import {  WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { createWeb3Modal } from '@web3modal/wagmi/react'
-import { sepolia } from 'wagmi/chains'
+import { createAppKit } from '@reown/appkit/react'
+import { sepolia } from '@reown/appkit/networks'
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 import { http, createConfig } from 'wagmi'
 
 
@@ -19,6 +20,16 @@ import { http, createConfig } from 'wagmi'
 export const AppContext = React.createContext(null)
 const queryClient = new QueryClient()
 const projectId = '384505415360a17d2c1a47cfea380711'
+
+
+// 3. Set the networks
+const networks = [sepolia]
+
+
+const wagmiAdapter = new WagmiAdapter({
+  networks,
+  projectId
+});
 
 const wagmiConfig = createConfig({
   chains: [sepolia],
@@ -29,11 +40,11 @@ const wagmiConfig = createConfig({
 
 
 
-createWeb3Modal({
-  wagmiConfig: wagmiConfig,
-  projectId,
-  enableAnalytics: true, // Optional - defaults to your Cloud configuration
-  enableOnramp: true // Optional - false as default
+createAppKit({
+  adapters: [wagmiAdapter],
+  networks,
+  projectId
+  
 })
 
 const App = () => {
@@ -63,10 +74,10 @@ const App = () => {
             <div className="App">
               <AppBarTop></AppBarTop>
               <Routes>
-                <Route exact path="Blockchain4Bintec/Certificado" element={<Certificado />} />
-                <Route exact path="Blockchain4Bintec/Mercado" element={<Canvas />} />
-                <Route exact path="Blockchain4Bintec/" element={<Home />} />
-                <Route exact path="*" element={<Navigate to='Blockchain4Bintec/' />} />
+                <Route exact path="Bintec24/Certificado" element={<Certificado />} />
+                <Route exact path="Bintec24/Mercado" element={<Canvas />} />
+                <Route exact path="Bintec24/" element={<Home />} />
+                <Route exact path="*" element={<Navigate to='Bintec24/' />} />
               </Routes>
               <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
                 <Alert onClose={handleClose} severity={alertSeverity} sx={{ width: '87vw' }}>

@@ -225,17 +225,17 @@ const Tickets = () => {
                 </Box>
 
                 {/* Mostrar las tarjetas de vehículos */}
-                <Box display="flex" alignItems="center" mt={3} width="100%">
+                <Box display="flex" justifyContent="center" alignItems="center" mt={3} width="100%">
                     <Grid
                         container
-                        rowSpacing={1}
+                        rowSpacing={3}
                         maxWidth="xl"
                         justifyContent="center"
                         columnSpacing={{ xs: 1, sm: 2, md: 3 }}
                     >
                         {data?.filter(car => car.isAvailable).map((cars) => (
-                            <Grid item xs={12} sm={6} md={4} lg={3} key={cars['id']}>
-                                <Card sx={{ maxWidth: 225, height: '100%' }}>
+                            <Grid item xs={12} sm={6} md={4} lg={3} key={cars['id']} display="flex" justifyContent="center">
+                                <Card sx={{ maxWidth: { xs: '100%', sm: 225 }, height: '100%', textAlign: 'center' }}>
                                     <CardActionArea>
                                         <CardContent>
                                             <Typography gutterBottom variant="h5" component="div">
@@ -263,7 +263,7 @@ const Tickets = () => {
                                     </CardActionArea>
                                     {role === 'Buyer' && (
                                         <CardActions sx={{ justifyContent: "center" }}>
-                                            <Button size="small" sx={{ backgroundColor: '#ffeb3b' }} variant="contained" onClick={() => handlepurchase(cars['id'], cars['isAvailable'])}>
+                                            <Button size="small" sx={{ backgroundColor: '#00c587' }} variant="contained" onClick={() => handlepurchase(cars['id'], cars['isAvailable'])}>
                                                 Comprar
                                             </Button>
                                         </CardActions>

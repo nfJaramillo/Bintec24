@@ -19,7 +19,7 @@ export function AppBarTop() {
     // Titulo que se muestra cuando el tamaño de pantalla es de un celular
     const tituloResumido = 'B4B'
     // Link base de la pagina que debe ser igual al estipulado en App.jsx
-    const linkBase = 'Blockchain4Bintec/'
+    const linkBase = 'Bintec24/'
 
     const navigate = useNavigate();
 

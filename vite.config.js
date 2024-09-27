@@ -7,7 +7,7 @@ export default defineConfig({
   base: '/Bintec24/',
   plugins: [react()],
   build:{
-    outDir: "build"
+    outDir: "dist"
   }
 })
 

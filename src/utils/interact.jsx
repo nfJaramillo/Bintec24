@@ -7,6 +7,7 @@ import { sepolia } from 'wagmi/chains'
 import { http, createConfig } from 'wagmi'
 
 
+
 const contractAddress = '0xc9E315870cc21a2bA086A8Bf3831100c00682851';
 const contractAddress2 = '0x9D4cCb21b17658A7E3220933EE3BeC839f80403c';
 const web3 = new Web3();
